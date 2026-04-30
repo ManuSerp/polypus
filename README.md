@@ -10,11 +10,12 @@ Service monitor & deployment drift detection for home server Docker services
 
 * [ ] No daemon at startup
 
-* [ ] Register services manually
+* [x] Register services manually
+  * need to update container id automatically
 
-* [ ] A service = one deployed application
+* [x] A service = one deployed application
 
-* [ ] Initially based on one `docker-compose.yml`
+* [x] Initially based on one `docker-compose.yml`
 
 * [ ] List registered services
 
