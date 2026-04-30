@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use polypus::Result;
-use polypus::config::{DCService, PolypusConfig};
+use polypus::config::{DCService, PolypusConfig, is_file};
+
 #[derive(Parser)]
 #[command(name = "nprobe")]
 #[command(about = "A AI probe tool", long_about = None)]
@@ -11,15 +12,36 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Register {},
+    Register {
+        /// Name of the service to register
+        name: String,
+    },
+    Status {},
     Config {},
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
-        Some(Commands::Register {}) => {
-            println!("Registering...");
+        Some(Commands::Register { name }) => {
+            let mut pwd = std::env::current_dir()?;
+            pwd = pwd.join("docker-compose.yaml");
+
+            println!("Registering {}...", pwd.display());
+            let pwd_str = pwd.to_str().ok_or("Invalid path")?;
+
+            if !is_file(pwd_str) {
+                println!("No docker-compose.yaml found in current directory");
+                return Ok(());
+            } else {
+                let service = DCService::new_from_dc(name, pwd_str.to_string())?;
+                let mut conf = PolypusConfig::new_from_path("config.json".to_string())?;
+                conf.register(service)?;
+                return Ok(());
+            }
+        }
+        Some(Commands::Status {}) => {
+            println!("Status...");
         }
         Some(Commands::Config {}) => {
             let conf = PolypusConfig::new_from_path("config.json".to_string())?;
