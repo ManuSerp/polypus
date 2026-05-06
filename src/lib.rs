@@ -88,6 +88,7 @@ impl<'a> ServiceStatus<'a> {
                 continue;
             } else {
                 self.status = "unknown".to_string();
+                println!("Container {} has unknown status: {}", c.name, c.status);
                 return Ok(());
             }
         }
