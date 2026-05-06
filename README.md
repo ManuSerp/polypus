@@ -25,6 +25,8 @@ Service monitor & deployment drift detection for home server Docker services
 
 ## Phase 2 — Service Health & Status
 
+* [ ] register folder config option
+
 * [ ] Service-level monitoring (not container-level)
 * [ ] async check for future daemon
 
