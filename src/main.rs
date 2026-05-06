@@ -64,21 +64,26 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Status {}) => {
             let conf = PolypusConfig::get_default()?;
-            let mut status_list = Vec::new();
-            for service in &conf.registered {
-                status_list.push(ServiceStatus::new_and_update(service).await?);
-            }
-            for status in status_list {
-                let s = status.pretty_print();
-                let cs = status
-                    .pretty_print_containers()
-                    .iter()
-                    .map(|s| format!("  - {}", s))
-                    .collect::<Vec<String>>()
-                    .join("\n");
 
-                println!(" SERVICE:\n {} \nCONTAINERS:\n {}", s, cs);
+            if conf.registered.is_empty() {
+                ui::info("No services registered. Use 'polypus register <name>'");
+                return Ok(());
             }
+
+            let pb = ui::progress_bar(conf.registered.len() as u64);
+            let mut status_list = Vec::new();
+
+            for service in &conf.registered {
+                pb.set_message(format!("Checking {}", service.name));
+                status_list.push(ServiceStatus::new_and_update(service).await?);
+                pb.inc(1);
+            }
+            pb.finish_and_clear();
+
+            for status in &status_list {
+                ui::render_status(status);
+            }
+            println!();
         }
 
         Some(Commands::Config {}) => {
