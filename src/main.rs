@@ -18,10 +18,11 @@ enum Commands {
     },
     Status {},
     Ls {},
+    Docker_debug {},
     Config {},
 }
-
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Some(Commands::Register { name }) => {
@@ -40,6 +41,10 @@ fn main() -> Result<()> {
                 conf.register(service)?;
                 return Ok(());
             }
+        }
+        Some(Commands::Docker_debug {}) => {
+            println!("Debugging docker...");
+            polypus::docker::ps().await?;
         }
         Some(Commands::Status {}) => {
             println!("Status...");

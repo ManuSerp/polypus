@@ -19,13 +19,14 @@ Service monitor & deployment drift detection for home server Docker services
 
 * [x] List registered services
 
-* [ ] Show global service overview and statuses
+* [ ] Show global service overview and statuses, sync call
 
 ---
 
 ## Phase 2 — Service Health & Status
 
 * [ ] Service-level monitoring (not container-level)
+* [ ] async check for future daemon
 
 * [ ] Detect and display:
 

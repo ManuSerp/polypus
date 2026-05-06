@@ -95,7 +95,7 @@ impl PolypusConfig {
             config.write_config_file()?;
             Ok(config)
         } else {
-            // this is a bit ugly
+            // this is ugly
 
             let mut config = Self {
                 metadata: "Polypus Config".to_string(),
