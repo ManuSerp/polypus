@@ -1,5 +1,6 @@
 pub mod config;
 pub mod docker;
+pub mod ui;
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 use bollard::plugin::ContainerSummary;
 

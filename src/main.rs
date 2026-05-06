@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use polypus::config::{DCService, PolypusConfig, is_file};
-use polypus::{Result, ServiceStatus};
+use polypus::{Result, ServiceStatus, ui};
 
 #[derive(Parser)]
 #[command(name = "nprobe")]
@@ -28,19 +28,20 @@ async fn main() -> Result<()> {
         Some(Commands::Register { name }) => {
             let mut pwd = std::env::current_dir()?;
             pwd = pwd.join("docker-compose.yaml");
-
-            println!("Registering {}...", pwd.display());
             let pwd_str = pwd.to_str().ok_or("Invalid path")?;
 
             if !is_file(pwd_str) {
-                println!("No docker-compose.yaml found in current directory");
-                return Ok(());
-            } else {
-                let service = DCService::new_from_dc(name, pwd_str.to_string())?;
-                let mut conf = PolypusConfig::get_default()?;
-                conf.register(service)?;
+                ui::error("No docker-compose.yaml found in current directory");
                 return Ok(());
             }
+
+            let sp = ui::spinner("Registering service...");
+            let service = DCService::new_from_dc(name.clone(), pwd_str.to_string())?;
+            let mut conf = PolypusConfig::get_default()?;
+            conf.register(service)?;
+            sp.finish_and_clear();
+
+            ui::success(&format!("Service '{}' registered", name));
         }
         Some(Commands::Docker_debug {}) => {
             println!("Debugging docker...");
@@ -48,21 +49,26 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Status {}) => {
             let conf = PolypusConfig::get_default()?;
-            let mut status_list = Vec::new();
-            for service in &conf.registered {
-                status_list.push(ServiceStatus::new_and_update(service).await?);
-            }
-            for status in status_list {
-                let s = status.pretty_print();
-                let cs = status
-                    .pretty_print_containers()
-                    .iter()
-                    .map(|s| format!("  - {}", s))
-                    .collect::<Vec<String>>()
-                    .join("\n");
 
-                println!(" SERVICE:\n {} \nCONTAINERS:\n {}", s, cs);
+            if conf.registered.is_empty() {
+                ui::info("No services registered. Use 'polypus register <name>'");
+                return Ok(());
             }
+
+            let pb = ui::progress_bar(conf.registered.len() as u64);
+            let mut status_list = Vec::new();
+
+            for service in &conf.registered {
+                pb.set_message(format!("Checking {}", service.name));
+                status_list.push(ServiceStatus::new_and_update(service).await?);
+                pb.inc(1);
+            }
+            pb.finish_and_clear();
+
+            for status in &status_list {
+                ui::render_status(status);
+            }
+            println!();
         }
 
         Some(Commands::Config {}) => {
@@ -71,12 +77,14 @@ async fn main() -> Result<()> {
             println!("Config: {:?}", conf);
         }
         Some(Commands::Ls {}) => {
-            println!("Listing registered services...");
             let conf = PolypusConfig::get_default()?;
 
-            for serv in conf.registered {
-                println!("Service: {}, Kind: {}", serv.name, serv.kind);
+            if conf.registered.is_empty() {
+                ui::info("No services registered. Use 'polypus register <name>'");
+                return Ok(());
             }
+
+            ui::render_service_list(&conf.registered);
         }
         None => {
             println!("No command provided");
