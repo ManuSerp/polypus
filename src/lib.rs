@@ -84,6 +84,8 @@ impl<'a> ServiceStatus<'a> {
                 return Ok(());
             } else if c.status.contains("running") {
                 continue;
+            } else if c.status.contains("healthy") {
+                continue;
             } else {
                 self.status = "unknown".to_string();
                 return Ok(());

@@ -25,6 +25,18 @@ Service monitor & deployment drift detection for home server Docker services
 
 ## Phase 2 — Service Health & Status
 
+* Enum in ServiceStatus and container status:
+  to avoid parsing strings, can probably have bollard do taht direclty to have no parsing at all
+  
+
+  * running
+  * stopped
+  * healthy
+  * degraded
+  * unhealthy
+  * unknown
+ 
+
 * [ ] register folder config option
 
 * [ ] Service-level monitoring (not container-level)

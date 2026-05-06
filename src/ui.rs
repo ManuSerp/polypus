@@ -63,6 +63,8 @@ pub fn render_status(status: &ServiceStatus) {
     );
 
     if !status.containers_status.is_empty() {
+        // Here we probaly should use bollard directly to get if the container is healthy, not rely on the status string, but for now it works:
+        // // or use an enum for the status in ContainerStatus struct, instead of a string, to avoid this kind of parsing
         let ok_status = ["running", "healthy"];
         for container in &status.containers_status {
             let icon = if ok_status.iter().any(|s| container.status.contains(s)) {
