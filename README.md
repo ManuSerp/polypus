@@ -6,9 +6,9 @@ Service monitor & deployment drift detection for home server Docker services
 
 ## Phase 1 — CLI Core
 
-* [ ] Build CLI-only version first
+* [x] Build CLI-only version first
 
-* [ ] No daemon at startup
+* [x] No daemon at startup
 
 * [x] Register services manually
   * need to update container id automatically
@@ -19,7 +19,7 @@ Service monitor & deployment drift detection for home server Docker services
 
 * [x] List registered services
 
-* [ ] Show global service overview and statuses, sync call
+* [x] Show global service overview and statuses, sync call
 
 ---
 

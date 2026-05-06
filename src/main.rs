@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
-use polypus::Result;
 use polypus::config::{DCService, PolypusConfig, is_file};
+use polypus::{Result, ServiceStatus};
 
 #[derive(Parser)]
 #[command(name = "nprobe")]
@@ -44,11 +44,27 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Docker_debug {}) => {
             println!("Debugging docker...");
-            polypus::docker::ps().await?;
+            println!("{:?}", polypus::docker::ps().await?);
         }
         Some(Commands::Status {}) => {
-            println!("Status...");
+            let conf = PolypusConfig::get_default()?;
+            let mut status_list = Vec::new();
+            for service in &conf.registered {
+                status_list.push(ServiceStatus::new_and_update(service).await?);
+            }
+            for status in status_list {
+                let s = status.pretty_print();
+                let cs = status
+                    .pretty_print_containers()
+                    .iter()
+                    .map(|s| format!("  - {}", s))
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
+                println!(" SERVICE:\n {} \nCONTAINERS:\n {}", s, cs);
+            }
         }
+
         Some(Commands::Config {}) => {
             let conf = PolypusConfig::get_default()?;
 
