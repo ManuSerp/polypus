@@ -63,8 +63,9 @@ pub fn render_status(status: &ServiceStatus) {
     );
 
     if !status.containers_status.is_empty() {
+        let ok_status = ["running", "healthy"];
         for container in &status.containers_status {
-            let icon = if container.status.contains("running") {
+            let icon = if ok_status.iter().any(|s| container.status.contains(s)) {
                 style("▶").green()
             } else if container.status.contains("exited") {
                 style("■").red()
