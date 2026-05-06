@@ -106,4 +106,9 @@ impl PolypusConfig {
             Ok(config)
         }
     }
+    pub fn get_default() -> Result<Self> {
+        let home = std::env::var("HOME")?;
+        let config_path = format!("{}/.polypus_config.json", home);
+        Self::new_from_path(config_path)
+    }
 }

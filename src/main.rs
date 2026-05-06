@@ -17,6 +17,7 @@ enum Commands {
         name: String,
     },
     Status {},
+    Ls {},
     Config {},
 }
 
@@ -35,7 +36,7 @@ fn main() -> Result<()> {
                 return Ok(());
             } else {
                 let service = DCService::new_from_dc(name, pwd_str.to_string())?;
-                let mut conf = PolypusConfig::new_from_path("config.json".to_string())?;
+                let mut conf = PolypusConfig::get_default()?;
                 conf.register(service)?;
                 return Ok(());
             }
@@ -44,8 +45,17 @@ fn main() -> Result<()> {
             println!("Status...");
         }
         Some(Commands::Config {}) => {
-            let conf = PolypusConfig::new_from_path("config.json".to_string())?;
+            let conf = PolypusConfig::get_default()?;
+
             println!("Config: {:?}", conf);
+        }
+        Some(Commands::Ls {}) => {
+            println!("Listing registered services...");
+            let conf = PolypusConfig::get_default()?;
+
+            for serv in conf.registered {
+                println!("Service: {}, Kind: {}", serv.name, serv.kind);
+            }
         }
         None => {
             println!("No command provided");

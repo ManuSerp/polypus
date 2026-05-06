@@ -17,9 +17,9 @@ Service monitor & deployment drift detection for home server Docker services
 
 * [x] Initially based on one `docker-compose.yml`
 
-* [ ] List registered services
+* [x] List registered services
 
-* [ ] Show global service overview
+* [ ] Show global service overview and statuses
 
 ---
 
