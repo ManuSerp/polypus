@@ -88,10 +88,10 @@ impl<'a> ServiceStatus<'a> {
                 continue;
             } else {
                 self.status = "unknown".to_string();
-                println!("Container {} has unknown status: {}", c.name, c.status);
                 return Ok(());
             }
         }
+        self.status = "running".to_string();
         Ok(())
     }
     pub fn pretty_print_containers(&self) -> Vec<String> {
