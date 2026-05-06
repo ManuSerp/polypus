@@ -41,7 +41,11 @@ impl<'a> ServiceStatus<'a> {
         for container in &docker_status {
             if let Some(names) = &container.names {
                 for name in names {
+                    // Docker prefixes names with /, so store both versions
                     container_map.insert(name.clone(), &container);
+                    if let Some(stripped) = name.strip_prefix('/') {
+                        container_map.insert(stripped.to_string(), &container);
+                    }
                 }
             }
         }
