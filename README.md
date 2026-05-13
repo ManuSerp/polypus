@@ -1,17 +1,23 @@
-## TODO — Polypus
+#  — Polypus
 
-Service monitor & deployment drift detection for home server Docker services
+Small CLI tool to monitor self-hosted services in my Home Lab server.
+Most services are deployed from a docker compose file, so this CLI (for the moment only docker compose) registers those services and allows easy monitoring.
+
+A service that Polypus monitors can be composed of multiple containers (services in the docker compose file), but it is registered as one logical service. The CLI will monitor all containers and determine the overall service status.
+
+To register: `polypus register {name_of_your_service}`
+
+Then: `polypus status` to see the registered services and their status.
+
 
 ---
 
-## Phase 1 — CLI Core
+## What is done
 
 * [x] Build CLI-only version first
 
-* [x] No daemon at startup
 
 * [x] Register services manually
-  * need to update container id automatically
 
 * [x] A service = one deployed application
 
@@ -21,26 +27,18 @@ Service monitor & deployment drift detection for home server Docker services
 
 * [x] Show global service overview and statuses, sync call
 
+* [X] monitor service containers to determine status 
+
 ---
 
-## Phase 2 — Service Health & Status
+## Futur improvement
  
 
 * [ ] register folder config option
 
+
 * [ ] Service-level monitoring (not container-level)
-* [ ] async check for future daemon
-
-* [ ] Detect and display:
-
-  * running
-  * stopped
-  * healthy
-  * degraded
-  * unhealthy
-  * unknown
-  * outdated
-  * healthy but outdated
+* [ ] async check might be better
 
 * [ ] Do not rely only on Docker healthcheck
 
@@ -58,16 +56,6 @@ Service monitor & deployment drift detection for home server Docker services
   * HTTP endpoint checks
   * DB connectivity checks
 
----
-
-## Phase 3 — Detailed Diagnostics
-
-* [ ] Show containers inside each service
-
-* [ ] Identify:
-
-  * which container is failing
-  * why it is failing
 
 * [ ] Quick CLI access to:
 
@@ -75,9 +63,6 @@ Service monitor & deployment drift detection for home server Docker services
   * recent failures
   * restart history
 
----
-
-## Phase 4 — Service Actions
 
 * [ ] Service commands:
 
@@ -102,9 +87,7 @@ Should show:
 * why
 * which files changed
 
----
-
-## Phase 5 — Deployment Drift Detection
+ ### — Deployment Drift Detection
 
 * [ ] Compare deployed state vs local `docker-compose.yml`
 
@@ -120,56 +103,11 @@ Should show:
 
 * [ ] CLI command to sync outdated services
 
----
 
-## Phase 6 — Directory Registry
 
-* [ ] Register a full project directory instead of only `docker-compose.yml`
 
-Track:
 
-* root folder
-
-* subfolders
-
-* config files
-
-* mounted files
-
-* `.env`
-
-* reverse proxy configs
-
-* service-specific configuration
-
-* [ ] If tracked files change:
-
-  * mark service as outdated
-
----
-
-## Phase 7 — Change Detection Engine
-
-* [ ] Use content hash
-* [ ] Do NOT rely on `mtime`
-
-Use hashes for:
-
-* compose files
-* config files
-* mounted files
-* environment files
-
-Avoid:
-
-* false positives
-* false negatives
-* git checkout issues
-* backup restore issues
-
----
-
-## Phase 8 — Persistent State Storage
+## far away futur
 
 * [ ] Store state locally with SQLite
 
@@ -197,9 +135,6 @@ Store:
 
 SQLite as default storage backend
 
----
-
-## Phase 9 — Safe Restart Strategy
 
 * [ ] Safe restart flow:
 
@@ -223,49 +158,3 @@ Important constraints:
 * multi-container services
 
 Do not implement full rollback too early
-
----
-
-## Phase 10 — Standalone Daemon
-
-* [ ] Separate standalone daemon
-
-Daemon responsibilities:
-
-* monitor continuously
-* detect failures
-* detect outdated services
-
-Optional actions:
-
-* auto-restart unhealthy services
-
-* auto-restart healthy but outdated services
-
-* [ ] Fully configurable from CLI
-
----
-
-## Phase 11 — Optional API Layer
-
-* [ ] Daemon can optionally expose an API
-
-Use cases:
-
-* remote visualization
-* dashboard integration
-* external monitoring
-* automation hooks
-
----
-
-## Future Ideas
-
-* [ ] Notifications (Discord / Email / Telegram)
-* [ ] Web dashboard
-* [ ] Service dependency graph
-* [ ] Failure metrics/history
-* [ ] Deployment history
-* [ ] Backup integration
-* [ ] Remote node support
-* [ ] Multi-host monitoring

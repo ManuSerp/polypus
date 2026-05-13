@@ -18,7 +18,6 @@ enum Commands {
     },
     Status {},
     Ls {},
-    Docker_debug {},
     Config {},
 }
 #[tokio::main]
@@ -58,10 +57,7 @@ async fn main() -> Result<()> {
 
             ui::success(&format!("Service '{}' registered", name));
         }
-        Some(Commands::Docker_debug {}) => {
-            println!("Debugging docker...");
-            println!("{:?}", polypus::docker::ps().await?);
-        }
+
         Some(Commands::Status {}) => {
             let conf = PolypusConfig::get_default()?;
 
