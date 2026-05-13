@@ -8,14 +8,14 @@ use crate::config::DCService;
 use crate::docker::ps;
 pub struct ServiceStatus<'a> {
     pub service: &'a DCService,
-    pub status: String,
+    pub status: StatusEnum,
     pub containers_status: Vec<ContainerStatus>,
 }
 
 pub struct ContainerStatus {
     pub name: String,
     pub image: String,
-    pub status: String,
+    pub status: StatusEnum,
     pub id: String,
 }
 
@@ -23,7 +23,7 @@ impl<'a> ServiceStatus<'a> {
     pub fn new(service: &'a DCService) -> Self {
         Self {
             service,
-            status: "unknown".to_string(),
+            status: StatusEnum::Unknown,
             containers_status: vec![],
         }
     }
@@ -56,7 +56,7 @@ impl<'a> ServiceStatus<'a> {
                 let container_status = ContainerStatus {
                     name: name.clone(),
                     image: s_container.image.clone(),
-                    status: container.status.clone().unwrap_or_default(),
+                    status: StatusEnum::from(container.status.clone().unwrap_or_default()),
                     id: container.id.clone().unwrap_or_default(),
                 };
                 self.containers_status.push(container_status);
@@ -64,7 +64,7 @@ impl<'a> ServiceStatus<'a> {
                 self.containers_status.push(ContainerStatus {
                     name: name.clone(),
                     image: s_container.image.clone(),
-                    status: "not found".to_string(),
+                    status: StatusEnum::NotFound,
                     id: "".to_string(),
                 });
             }
@@ -76,22 +76,28 @@ impl<'a> ServiceStatus<'a> {
         self.update_containers_from_docker().await?;
         // compute global status
         for c in &self.containers_status {
-            if c.status.contains("unhealthy") {
-                self.status = "unhealthy".to_string();
-                return Ok(());
-            } else if c.status.contains("exited") {
-                self.status = "exited".to_string();
-                return Ok(());
-            } else if c.status.contains("running") {
-                continue;
-            } else if c.status.contains("healthy") {
-                continue;
-            } else {
-                self.status = "unknown".to_string();
-                return Ok(());
+            match c.status {
+                StatusEnum::Unhealthy => {
+                    self.status = StatusEnum::Unhealthy;
+                    return Ok(());
+                }
+                StatusEnum::Exited => {
+                    self.status = StatusEnum::Unhealthy;
+                    return Ok(());
+                }
+                StatusEnum::Up | StatusEnum::Healthy => continue,
+                StatusEnum::NotFound => {
+                    self.status = StatusEnum::Unknown;
+                    return Ok(());
+                }
+                StatusEnum::Unknown => {
+                    self.status = StatusEnum::Unknown;
+                    return Ok(());
+                }
             }
         }
-        self.status = "running".to_string();
+
+        self.status = StatusEnum::Up;
         Ok(())
     }
     pub fn pretty_print_containers(&self) -> Vec<String> {
@@ -110,5 +116,48 @@ impl<'a> ServiceStatus<'a> {
             self.status,
             self.containers_status.len()
         )
+    }
+}
+
+#[derive(PartialEq, Eq)]
+pub enum StatusEnum {
+    Up,
+    Exited,
+    Unhealthy,
+    NotFound,
+    Unknown,
+    Healthy,
+}
+
+impl From<String> for StatusEnum {
+    fn from(s: String) -> Self {
+        let s_lower = s.to_lowercase();
+        if s_lower.contains("running") || s_lower.contains("up") {
+            StatusEnum::Up
+        } else if s_lower.contains("exited") {
+            StatusEnum::Exited
+        } else if s_lower.contains("unhealthy") {
+            StatusEnum::Unhealthy
+        } else if s_lower.contains("healthy") {
+            StatusEnum::Healthy
+        } else if s_lower.contains("not found") {
+            StatusEnum::NotFound
+        } else {
+            StatusEnum::Unknown
+        }
+    }
+}
+
+impl std::fmt::Display for StatusEnum {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            StatusEnum::Up => "Up",
+            StatusEnum::Exited => "Exited",
+            StatusEnum::Unhealthy => "Unhealthy",
+            StatusEnum::NotFound => "Not Found",
+            StatusEnum::Unknown => "Unknown",
+            StatusEnum::Healthy => "Healthy",
+        };
+        write!(f, "{}", s)
     }
 }

@@ -2,7 +2,7 @@ use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
-use crate::{ServiceStatus, config::DCService};
+use crate::{ServiceStatus, StatusEnum, config::DCService};
 
 pub fn spinner(msg: &str) -> ProgressBar {
     let pb = ProgressBar::new_spinner();
@@ -40,17 +40,18 @@ pub fn info(msg: &str) {
 }
 
 pub fn render_status(status: &ServiceStatus) {
-    let emoji = match status.status.as_str() {
-        s if s.contains("running") => style("✅").green(),
-        s if s.contains("exited") => style("🛑").red(),
-        s if s.contains("unhealthy") => style("⚠️").yellow(),
+    let emoji = match status.status {
+        StatusEnum::Up => style("✅").green(),
+        StatusEnum::Unhealthy => style("🛑").red(),
+        StatusEnum::Unknown => style("⚠️").yellow(),
+        StatusEnum::Exited => style("❌").red(),
         _ => style("❓").dim(),
     };
 
-    let status_text = match status.status.as_str() {
-        s if s.contains("running") => style(&status.status).green().bold(),
-        s if s.contains("exited") => style(&status.status).red().bold(),
-        s if s.contains("unhealthy") => style(&status.status).yellow().bold(),
+    let status_text = match status.status {
+        StatusEnum::Up | StatusEnum::Healthy => style(&status.status).green().bold(),
+        StatusEnum::Exited | StatusEnum::Unhealthy => style(&status.status).red().bold(),
+        StatusEnum::Unknown => style(&status.status).yellow().bold(),
         _ => style(&status.status).dim(),
     };
 
@@ -63,24 +64,19 @@ pub fn render_status(status: &ServiceStatus) {
     );
 
     if !status.containers_status.is_empty() {
-        // Here we probaly should use bollard directly to get if the container is healthy, not rely on the status string, but for now it works:
-        // // or use an enum for the status in ContainerStatus struct, instead of a string, to avoid this kind of parsing
-        let ok_status = ["running", "healthy"];
         for container in &status.containers_status {
-            let icon = if ok_status.iter().any(|s| container.status.contains(s)) {
-                style("▶").green()
-            } else if container.status.contains("exited") {
-                style("■").red()
-            } else {
-                style("●").dim()
+            let icon = match container.status {
+                StatusEnum::Up | StatusEnum::Healthy => style("▶").green(),
+                StatusEnum::Exited => style("■").red(),
+                _ => style("●").dim(),
             };
 
-            let c_status = if container.status.contains("running") {
-                style(&container.status).green()
-            } else if container.status.contains("exited") {
-                style(&container.status).red()
-            } else {
-                style(&container.status).yellow()
+            let c_status = match container.status {
+                StatusEnum::Up | StatusEnum::Healthy => style(&container.status).green(),
+                StatusEnum::Exited => style(&container.status).red(),
+                StatusEnum::Unhealthy => style(&container.status).red(),
+                StatusEnum::Unknown => style(&container.status).yellow(),
+                _ => style(&container.status).dim(),
             };
 
             println!("  {} {} ({})", icon, style(&container.name).dim(), c_status);
