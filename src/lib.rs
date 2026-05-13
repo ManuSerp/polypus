@@ -132,7 +132,9 @@ pub enum StatusEnum {
 impl From<String> for StatusEnum {
     fn from(s: String) -> Self {
         let s_lower = s.to_lowercase();
-        if s_lower.contains("running") || s_lower.contains("up") {
+        if s_lower.contains("up") && s_lower.contains("healthy") {
+            StatusEnum::Healthy
+        } else if s_lower.contains("running") || s_lower.contains("up") {
             StatusEnum::Up
         } else if s_lower.contains("exited") {
             StatusEnum::Exited
