@@ -3,8 +3,8 @@ use polypus::config::{DCService, PolypusConfig, is_file};
 use polypus::{Result, ServiceStatus, ui};
 
 #[derive(Parser)]
-#[command(name = "nprobe")]
-#[command(about = "A AI probe tool", long_about = None)]
+#[command(name = "polypus")]
+#[command(about = "docker compose service monitoring", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
